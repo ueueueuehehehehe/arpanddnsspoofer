@@ -4,15 +4,18 @@ import time
 import paramiko
 
 # Configuration
-LOG_FILE = "/var/log/cisco9200.log"
-DAI_PATTERN = r".*%SW_DAI-4-DHCP_SNOOPING_DENY.*?on\s+(Gi\S+).*, vlan"
-SWITCH_IP = "192.168.0.2"
+LOG_FILE = "/var/log/cisco9200.log" # location of rsyslog files
+DAI_PATTERN = r".*%SW_DAI-4-DHCP_SNOOPING_DENY.*?on\s+(Gi\S+).*, vlan" # pattern to match for arp violation warning
+SWITCH_IP = "192.168.0.2" # Management IP of switch
 SSH_USER = "sysloguser"
-SSH_PASS = "hashbrown"  # Or use key-based auth
-SHUT_COMMAND = "shutdown"
+SSH_PASS = "hashbrown"  # credentials of switch
+SHUT_COMMAND = "shutdown" # action to take on violation interface
 
-def follow(logfile_path):
-    """Follow log file like tail -f."""
+def follow(logfile_path): 
+    """
+    Follow log file like tail -f.
+    Constantly reads the end of the the file
+    """
     with open(logfile_path, "r") as file:
         file.seek(0, 2)
         while True:
@@ -23,7 +26,10 @@ def follow(logfile_path):
             yield line.strip()
 
 def shutdown_interface(interface):
-    """SSH into the switch and shut the specified interface."""
+    """
+    SSH into the switch and shut the specified interface.
+    
+    """
     try:
         ssh = paramiko.SSHClient()
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
@@ -51,6 +57,10 @@ def shutdown_interface(interface):
         print(f"[ERROR] SSH failed: {e}")
 
 def monitor_log():
+    '''
+    searches each log file for the matching error
+    
+    '''
     for line in follow(LOG_FILE):
         print(line)
         match = re.search(DAI_PATTERN, line)
